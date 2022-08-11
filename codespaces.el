@@ -57,26 +57,31 @@
        (codespace-json (shell-command-to-string gh-invocation)))
     (json-parse-string codespace-json)))
 
+(defun codespaces--fold (acc val)
+  (puthash (intern (gethash "name" val)) val acc)
+  acc)
+
 (defun codespaces--munge (json)
-  (-map (lambda (n) (list (gethash "name" n) (gethash "repository" n))) json))
+  (-reduce-from #'codespaces--fold (make-hash-table) (append json nil)))
 
 (defun codespaces--annotate (s)
-  (let ((item (assoc s minibuffer-completion-table)))
-    (when item (concat "  -- " (nth 1 item)))))
+  (letrec ((item (gethash (intern s) minibuffer-completion-table))
+           (keys (hash-table-keys minibuffer-completion-table)))
+    (format " -- %s | %s" (gethash "state" item) (gethash "repository" item))))
+
 
 (defun codespaces--complete ()
   (interactive)
-  (letrec
-      ((json (codespaces--get-codespaces))
-       (valid-names (codespaces--munge json)))
-    (let ((completion-extra-properties '(:annotation-function codespaces--annotate)))
-      (completing-read "Please select a codespace: " valid-names))))
+  (let
+      ((completion-extra-properties '(:annotation-function codespaces--annotate))
+       (valid-names (codespaces--munge (codespaces--get-codespaces))))
+    (completing-read "Please select a codespace: " valid-names)))
 
 (defun codespaces-connect ()
   "Connect to a running codespace."
   (interactive)
-  (let (cs (codespaces--complete))
-    (find-file (format "/ghcs:patrickt-git:/workspaces"))))
+  (let ((cs (codespaces--complete)))
+    (find-file (format "/ghcs:%s:/workspaces" cs))))
 
 (provide 'codespaces)
 

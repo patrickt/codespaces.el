@@ -65,8 +65,7 @@
   (-reduce-from #'codespaces--fold (make-hash-table) (append json nil)))
 
 (defun codespaces--annotate (s)
-  (letrec ((item (gethash (intern s) minibuffer-completion-table))
-           (keys (hash-table-keys minibuffer-completion-table)))
+  (let ((item (gethash (intern s) minibuffer-completion-table)))
     (format " -- %s | %s" (gethash "state" item) (gethash "repository" item))))
 
 

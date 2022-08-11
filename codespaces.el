@@ -34,6 +34,8 @@
 
 ;;; Code:
 
+(require 'tramp)
+
 (defun codespaces-setup ()
   "Set up the ghcs tramp-method. Should be called after requiring this package."
   (interactive)
@@ -51,34 +53,50 @@
     (if ghcs (setcdr ghcs ghcs-methods)
       (push (cons "ghcs" ghcs-methods) tramp-methods))))
 
+(cl-defstruct codespaces-space name state repository ref)
+
+(defun codespaces-space-from-hashtable (ht)
+  (make-codespaces-space
+   :name (gethash "name" ht)
+   :state (gethash "state" ht)
+   :repository (gethash "repository" ht)
+   :ref (gethash "ref" (gethash "gitStatus" ht))))
+
+(defun codespaces-space-describe (cs)
+  (format " -- %s | %s | %s"
+          (codespaces-space-state cs)
+          (codespaces-space-repository cs)
+          (codespaces-space-ref cs)))
+
 (defun codespaces--get-codespaces ()
   (letrec
       ((gh-invocation "gh codespace list --json name,displayName,repository,state,gitStatus,lastUsedAt")
        (codespace-json (shell-command-to-string gh-invocation)))
-    (json-parse-string codespace-json)))
+    (codespaces--munge (json-parse-string codespace-json))))
 
 (defun codespaces--fold (acc val)
-  (puthash (gethash "name" val) val acc)
-  acc)
+  (let ((cs (codespaces-space-from-hashtable val)))
+    (puthash (codespaces-space-name cs) cs acc)
+    acc))
 
 (defun codespaces--munge (json)
   (seq-reduce #'codespaces--fold json (make-hash-table :test 'equal)))
 
 (defun codespaces--annotate (s)
   (let ((item (gethash s minibuffer-completion-table)))
-    (format " -- %s | %s" (gethash "state" item) (gethash "repository" item))))
+    (codespaces-space-describe item)))
 
-(defun codespaces--complete ()
-  (interactive)
+(defun codespaces--complete (json)
   (let
       ((completion-extra-properties '(:annotation-function codespaces--annotate))
-       (valid-names (codespaces--munge (codespaces--get-codespaces))))
+       (valid-names json))
     (completing-read "Please select a codespace: " valid-names)))
 
 (defun codespaces-connect ()
-  "Connect to a running codespace."
+  "Select a codespace with completing-read and open a Dired browser at /workspaces."
   (interactive)
-  (let ((cs (codespaces--complete)))
+  (letrec ((json (codespaces--get-codespaces))
+           (cs (codespaces--complete json)))
     (find-file (format "/ghcs:%s:/workspaces" cs))))
 
 (provide 'codespaces)

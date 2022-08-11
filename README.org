@@ -1,0 +1,21 @@
+#+TITLE: codespaces.el
+
+This package provides support for connecting to [[https://github.com/features/codespaces][GitHub Codespaces]] in Emacs via [[https://www.gnu.org/software/tramp/][TRAMP]].
+
+You will need to have the GitHub [[https://cli.github.com][command line tools]] (~gh~) installed.
+
+Here is an example ~use-package~ declaration:
+
+#+begin_src emacs-lisp
+  (use-package codespaces
+    :config
+    (codespaces-setup))
+#+end_src
+
+* Credits
+
+Thanks to [[https://github.com/anticomputer][Bas Alberts]] for writing the code to register ~ghcs~ as a valid TRAMP connection method.
+
+* License
+
+GPL3.

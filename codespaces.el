@@ -5,7 +5,7 @@
 ;; Author: Patrick Thomson <patrickt@github.com>
 ;; URL: https://github.com/patrickt/codespaces.el
 ;; Package-Version: 0.1
-;; Package-Requires: ((emacs "28.1") (dash "2.19"))
+;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: tramp
 ;; Created: 2022-08-11
 
@@ -58,16 +58,15 @@
     (json-parse-string codespace-json)))
 
 (defun codespaces--fold (acc val)
-  (puthash (intern (gethash "name" val)) val acc)
+  (puthash (gethash "name" val) val acc)
   acc)
 
 (defun codespaces--munge (json)
-  (-reduce-from #'codespaces--fold (make-hash-table) (append json nil)))
+  (seq-reduce #'codespaces--fold json (make-hash-table :test 'equal)))
 
 (defun codespaces--annotate (s)
-  (let ((item (gethash (intern s) minibuffer-completion-table)))
+  (let ((item (gethash s minibuffer-completion-table)))
     (format " -- %s | %s" (gethash "state" item) (gethash "repository" item))))
-
 
 (defun codespaces--complete ()
   (interactive)

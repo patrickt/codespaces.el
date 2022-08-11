@@ -4,12 +4,14 @@ This package provides support for connecting to [[https://github.com/features/co
 
 You will need to have the GitHub [[https://cli.github.com][command line tools]] (~gh~) installed.
 
-Here is an example ~use-package~ declaration:
+Here is an example ~use-package~ declaration (though it won't work until I stick this on MELPA):
 
 #+begin_src emacs-lisp
   (use-package codespaces
     :config
-    (codespaces-setup))
+    (codespaces-setup)
+    :bind
+    ("C-c S" . #'codespaces-connect))
 #+end_src
 
 * Missing features

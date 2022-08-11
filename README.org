@@ -12,6 +12,10 @@ Here is an example ~use-package~ declaration:
     (codespaces-setup))
 #+end_src
 
+* Missing features
+
+- Should ensure that ~gh codespace list~ works okay.
+
 * Credits
 
 Thanks to [[https://github.com/anticomputer][Bas Alberts]] for writing the code to register ~ghcs~ as a valid TRAMP connection method.

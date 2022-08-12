@@ -68,6 +68,9 @@
           (codespaces-space-repository cs)
           (codespaces-space-ref cs)))
 
+(defun codespaces-space-available-p (cs)
+  (equal "Available" (codespaces-space-state cs)))
+
 (defun codespaces--get-codespaces ()
   (letrec
       ((gh-invocation "gh codespace list --json name,displayName,repository,state,gitStatus,lastUsedAt")
@@ -96,7 +99,10 @@
   "Select a codespace with completing-read and open a Dired browser at /workspaces."
   (interactive)
   (letrec ((json (codespaces--get-codespaces))
-           (cs (codespaces--complete json)))
+           (cs (codespaces--complete json))
+           (selected (gethash cs json)))
+    (unless (codespaces-space-available-p selected)
+      (message "Activating codespace (this may take some time)..."))
     (find-file (format "/ghcs:%s:/workspaces" cs))))
 
 (provide 'codespaces)

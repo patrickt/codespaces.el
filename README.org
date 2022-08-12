@@ -4,7 +4,7 @@ This package provides support for connecting to [[https://github.com/features/co
 
 [[./screenshot.png]]
 
-Here is an example ~use-package~ declaration (though it won't work until I stick this on MELPA):
+Here is an example ~use-package~ declaration:
 
 #+begin_src emacs-lisp
   (use-package codespaces

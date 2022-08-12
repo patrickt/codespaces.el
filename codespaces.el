@@ -6,7 +6,7 @@
 ;; URL: https://github.com/patrickt/codespaces.el
 ;; Package-Version: 0.1
 ;; Package-Requires: ((emacs "28.1"))
-;; Keywords: tramp
+;; Keywords: comm
 ;; Created: 2022-08-11
 
 ;;; License:
@@ -40,9 +40,9 @@
   "Set up the ghcs tramp-method. Should be called after requiring this package."
   (interactive)
   (unless (executable-find "gh")
-    (error "Could not find `gh' program in your PATH."))
+    (error "Could not find `gh' program in your PATH"))
   (unless (and (fboundp 'json-available-p) (json-available-p))
-    (error "Emacs JSON support not available; your Emacs is too old."))
+    (error "Emacs JSON support not available; your Emacs is too old"))
   (let ((ghcs (assoc "ghcs" tramp-methods))
         (ghcs-methods '((tramp-login-program "gh")
                         (tramp-login-args (("codespace") ("ssh") ("-c") ("%h")))
@@ -56,6 +56,7 @@
 (cl-defstruct codespaces-space name state repository ref)
 
 (defun codespaces-space-from-hashtable (ht)
+  "Create a codespace from the JSON hashtable HT returned from `gh'."
   (make-codespaces-space
    :name (gethash "name" ht)
    :state (gethash "state" ht)
@@ -63,40 +64,47 @@
    :ref (gethash "ref" (gethash "gitStatus" ht))))
 
 (defun codespaces-space-describe (cs)
+  "Format details about codespace CS for display as marginalia."
   (format " -- %s | %s | %s"
           (codespaces-space-state cs)
           (codespaces-space-repository cs)
           (codespaces-space-ref cs)))
 
 (defun codespaces-space-available-p (cs)
+  "Return t if codespace CS is marked as available."
   (equal "Available" (codespaces-space-state cs)))
 
 (defun codespaces--get-codespaces ()
+  "Execute `gh' and parse its results."
   (letrec
       ((gh-invocation "gh codespace list --json name,displayName,repository,state,gitStatus,lastUsedAt")
        (codespace-json (shell-command-to-string gh-invocation)))
     (codespaces--munge (json-parse-string codespace-json))))
 
 (defun codespaces--fold (acc val)
+  "Internal: fold function for accumulating JSON results into ACC from VAL."
   (let ((cs (codespaces-space-from-hashtable val)))
     (puthash (codespaces-space-name cs) cs acc)
     acc))
 
 (defun codespaces--munge (json)
+  "Internal: accumulate codespace instances from JSON vector."
   (seq-reduce #'codespaces--fold json (make-hash-table :test 'equal)))
 
 (defun codespaces--annotate (s)
+  "Annotation function for S invoked by `completing-read'."
   (let ((item (gethash s minibuffer-completion-table)))
     (codespaces-space-describe item)))
 
-(defun codespaces--complete (json)
+(defun codespaces--complete (ht)
+  "Invoke `completing-read' over JSON hashtable HT."
   (let
       ((completion-extra-properties '(:annotation-function codespaces--annotate))
-       (valid-names json))
+       (valid-names ht))
     (completing-read "Please select a codespace: " valid-names)))
 
 (defun codespaces-connect ()
-  "Select a codespace with completing-read and open a Dired browser at /workspaces."
+  "Select a codespace with `completing-read' and open a Dired browser at /workspaces."
   (interactive)
   (letrec ((json (codespaces--get-codespaces))
            (cs (codespaces--complete json))

@@ -7,7 +7,10 @@ You will need to have the GitHub [[https://cli.github.com][command line tools]] 
 Here is an example ~use-package~ declaration (though it won't work until I stick this on MELPA):
 
 #+begin_src emacs-lisp
+  (use-package use-package-ensure-system-package
+    :ensure t)
   (use-package codespaces
+    :ensure-system-package gh
     :config
     (codespaces-setup)
     :bind

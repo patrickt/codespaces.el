@@ -4,7 +4,7 @@
 
 ;; Author: Patrick Thomson <patrickt@github.com>
 ;; URL: https://github.com/patrickt/codespaces.el
-;; Package-Version: 0.1
+;; Version: 0.1
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: comm
 ;; Created: 2022-08-11
@@ -104,7 +104,7 @@
     (completing-read "Please select a codespace: " valid-names)))
 
 (defun codespaces-connect ()
-  "Select a codespace with `completing-read' and open a Dired browser at /workspaces."
+  "Connect to a codespace chosen by `completing-read'."
   (interactive)
   (letrec ((json (codespaces--get-codespaces))
            (cs (codespaces--complete json))

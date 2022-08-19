@@ -40,9 +40,9 @@
   "Set up the ghcs tramp-method. Should be called after requiring this package."
   (interactive)
   (unless (executable-find "gh")
-    (error "Could not find `gh' program in your PATH"))
+    (user-error "Could not find `gh' program in your PATH"))
   (unless (and (fboundp 'json-available-p) (json-available-p))
-    (error "Emacs JSON support not available; your Emacs is too old"))
+    (user-error "Emacs JSON support not available; your Emacs is too old"))
   (let ((ghcs (assoc "ghcs" tramp-methods))
         (ghcs-methods '((tramp-login-program "gh")
                         (tramp-login-args (("codespace") ("ssh") ("-c") ("%h")))
@@ -101,7 +101,7 @@
   (let
       ((completion-extra-properties '(:annotation-function codespaces--annotate))
        (valid-names ht))
-    (completing-read "Please select a codespace: " valid-names)))
+    (completing-read "Select a codespace: " valid-names)))
 
 (defun codespaces-connect ()
   "Connect to a codespace chosen by `completing-read'."

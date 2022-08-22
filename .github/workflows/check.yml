@@ -16,11 +16,6 @@ jobs:
         emacs_version:
           - 28.1
           - snapshot
-        ignore_warnings:
-          - true
-        include:
-          - emacs_version: snapshot
-            ignore_warnings: false
     steps:
     - uses: actions/checkout@v2
     - uses: purcell/setup-emacs@master
@@ -29,4 +24,3 @@ jobs:
     - uses: leotaku/elisp-check@master
       with:
         file: codespaces.el
-        ignore_warnings: ${{ matrix.ignore_warnings }}

@@ -1,6 +1,7 @@
 # codespaces.el
 
 [![check](https://github.com/patrickt/codespaces.el/actions/workflows/check.yml/badge.svg)](https://github.com/patrickt/codespaces.el/actions/workflows/check.yml)
+![license](https://img.shields.io/github/license/patrickt/codespaces.el)
 
 This package provides support for connecting to [GitHub Codespaces](https://github.com/features/codespaces) in Emacs via [TRAMP](https://www.gnu.org/software/tramp/). It provides a handy `completing-read` UI that lets you choose from all your created codespaces. Here's a screenshot (running with [vertico](https://github.com/minad/vertico)):
 

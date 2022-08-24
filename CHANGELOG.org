@@ -1,0 +1,8 @@
+- Use display name (falling back on machine name) in selection UI.
+- Slim down marginalia annotations.
+
+- TODO: update screenshot
+
+* Version 0.1
+
+Initial release.

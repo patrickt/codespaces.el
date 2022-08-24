@@ -53,19 +53,25 @@
     (if ghcs (setcdr ghcs ghcs-methods)
       (push (cons "ghcs" ghcs-methods) tramp-methods))))
 
-(cl-defstruct codespaces-space name state repository ref)
+(cl-defstruct codespaces-space name display-name state repository ref)
 
 (defun codespaces-space-from-hashtable (ht)
   "Create a codespace from the JSON hashtable HT returned from `gh'."
   (make-codespaces-space
    :name (gethash "name" ht)
+   :display-name (gethash "displayName" ht)
    :state (gethash "state" ht)
    :repository (gethash "repository" ht)
    :ref (gethash "ref" (gethash "gitStatus" ht))))
 
+(defun codespaces-space-readable-name (cs)
+  "Return the codespace's display name, or, if that is empty, its machine name."
+  (let ((name (codespaces-space-display-name cs)))
+    (if (string-empty-p name) (codespaces-space-name cs) name)))
+
 (defun codespaces-space-describe (cs)
   "Format details about codespace CS for display as marginalia."
-  (format " -- %s | %s | %s"
+  (format " | %s | %s | %s"
           (codespaces-space-state cs)
           (codespaces-space-repository cs)
           (codespaces-space-ref cs)))
@@ -84,7 +90,7 @@
 (defun codespaces--fold (acc val)
   "Internal: fold function for accumulating JSON results into ACC from VAL."
   (let ((cs (codespaces-space-from-hashtable val)))
-    (puthash (codespaces-space-name cs) cs acc)
+    (puthash (codespaces-space-readable-name cs) cs acc)
     acc))
 
 (defun codespaces--munge (json)
@@ -111,7 +117,7 @@
            (selected (gethash cs json)))
     (unless (codespaces-space-available-p selected)
       (message "Activating codespace (this may take some time)..."))
-    (find-file (format "/ghcs:%s:/workspaces" cs))))
+    (find-file (format "/ghcs:%s:/workspaces" (codespaces-space-name selected)))))
 
 (provide 'codespaces)
 

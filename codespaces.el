@@ -107,7 +107,7 @@
   (let
       ((completion-extra-properties '(:annotation-function codespaces--annotate))
        (valid-names ht))
-    (completing-read "Select a codespace: " valid-names)))
+    (completing-read "Select a codespace: " valid-names nil t)))
 
 (defun codespaces-connect ()
   "Connect to a codespace chosen by `completing-read'."

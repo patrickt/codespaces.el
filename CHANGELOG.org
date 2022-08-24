@@ -1,5 +1,6 @@
 - Use display name (falling back on machine name) in selection UI.
 - Slim down marginalia annotations.
+- Require a full match in completion.
 
 - TODO: update screenshot
 

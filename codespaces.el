@@ -65,7 +65,7 @@
    :ref (gethash "ref" (gethash "gitStatus" ht))))
 
 (defun codespaces-space-readable-name (cs)
-  "Return the codespace's display name, or, if that is empty, its machine name."
+  "Return the display name of CS, or, if that is empty, its machine name."
   (let ((name (codespaces-space-display-name cs)))
     (if (string-empty-p name) (codespaces-space-name cs) name)))
 
@@ -86,6 +86,24 @@
       ((gh-invocation "gh codespace list --json name,displayName,repository,state,gitStatus,lastUsedAt")
        (codespace-json (shell-command-to-string gh-invocation)))
     (codespaces--munge (json-parse-string codespace-json))))
+
+(defun codespaces--get-unavailable-codespaces ()
+  "Internal: find all unavailable codespaces."
+  (letrec ((newtable (make-hash-table :test 'equal))
+           ;; This is a terrible implementation but until I switch to using plists it's the best I can do
+           (construct (lambda (_ v)
+                        (unless (codespaces-space-available-p v)
+                          (puthash (codespaces-space-readable-name v) v newtable)))))
+    (maphash construct (codespaces--get-codespaces))
+    newtable))
+
+(defun codespaces--send-activate-async (cs)
+  "Send an `echo' command to CS over ssh."
+  (async-shell-command (format "gh codespace ssh -c %s echo 'Codespace ready.'" (codespaces-space-name cs))))
+
+(defun codespaces--send-activate-sync (cs)
+  "Send an `echo' command to CS over ssh synchronously."
+  (shell-command (format "gh codespace ssh -c %s echo 'Codespace ready.'" (codespaces-space-name cs)) (get-buffer shell-command-buffer-name)))
 
 (defun codespaces--fold (acc val)
   "Internal: fold function for accumulating JSON results into ACC from VAL."
@@ -109,14 +127,21 @@
        (valid-names ht))
     (completing-read "Select a codespace: " valid-names nil t)))
 
+(defun codespaces-activate ()
+  "Activate to a codespace chosen by `completing-read'."
+  (interactive)
+  (letrec ((json (codespaces--get-unavailable-codespaces))
+           (selected (gethash (codespaces--complete json) json)))
+    (codespaces--send-activate-async selected)))
+
 (defun codespaces-connect ()
   "Connect to a codespace chosen by `completing-read'."
   (interactive)
   (letrec ((json (codespaces--get-codespaces))
-           (cs (codespaces--complete json))
-           (selected (gethash cs json)))
+           (selected (gethash (codespaces--complete json) json)))
     (unless (codespaces-space-available-p selected)
-      (message "Activating codespace (this may take some time)..."))
+      (message "Activating codespace (this may take some time)...")
+      (codespaces--send-activate-sync selected))
     (find-file (format "/ghcs:%s:/workspaces" (codespaces-space-name selected)))))
 
 (provide 'codespaces)

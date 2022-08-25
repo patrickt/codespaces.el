@@ -30,8 +30,11 @@ automatically:
 # User-facing commands
 
 - `codespaces-connect` brings up a list of codespaces, and upon
-  selection opens a Dired buffer in `/workspaces` (the default
-  Codespaces location).
+    selection opens a Dired buffer in `/workspaces` (the default
+    Codespaces location).
+- `codespaces-activate` brings up a list of inactive codespaces,
+    and upon selection asynchronously spawns a task that activates
+    the selected codespace.
 
 # Missing features
 
@@ -40,7 +43,6 @@ automatically:
   so then start the codespace out-of-band before entering TRAMP, as
   otherwise we hit timeouts.
 - Completion should sort codespaces by most-recently-used.
-- A `codespace-activate` command to start inactive codespaces.
 - There should be `dtache` support to activate codespaces without
   freezing the Emacs UI.
 

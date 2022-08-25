@@ -98,23 +98,22 @@
 
 (defun codespaces--get-available-codespaces ()
   "Internal: find all available codespaces."
-  (let* ((newtable (make-hash-table :test 'equal))
-           ;; This is a terrible implementation but until I switch to using plists it's the best I can do
-           (construct (lambda (_ v)
-                        (when (codespaces-space-available-p v)
-                          (puthash (codespaces-space-readable-name v) v newtable)))))
-    (maphash construct (codespaces--get-codespaces))
+  (let ((newtable (make-hash-table :test 'equal)))
+    (cl-flet ((construct (_ v)
+                (when (codespaces-space-available-p v)
+                  (puthash (codespaces-space-readable-name v) v newtable))))
+      (maphash #'construct (codespaces--get-codespaces)))
     newtable))
 
 (defun codespaces--get-unavailable-codespaces ()
-  "Internal: find all unavailable codespaces."
-  (let* ((newtable (make-hash-table :test 'equal))
-           ;; This is a terrible implementation but until I switch to using plists it's the best I can do
-           (construct (lambda (_ v)
-                        (unless (codespaces-space-available-p v)
-                          (puthash (codespaces-space-readable-name v) v newtable)))))
-    (maphash construct (codespaces--get-codespaces))
+  "Internal: find all available codespaces."
+  (let ((newtable (make-hash-table :test 'equal)))
+    (cl-flet ((construct (_ v)
+                (unless (codespaces-space-available-p v)
+                  (puthash (codespaces-space-readable-name v) v newtable))))
+      (maphash #'construct (codespaces--get-codespaces)))
     newtable))
+
 
 (defun codespaces--send-start-async (cs)
   "Send an `echo' command to CS over ssh."

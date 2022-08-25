@@ -97,9 +97,13 @@
     (maphash construct (codespaces--get-codespaces))
     newtable))
 
-(defun codespaces--send-whoami (cs)
-  "Send a `whoami' command to CS."
+(defun codespaces--send-activate-async (cs)
+  "Send an `echo' command to CS over ssh."
   (async-shell-command (format "gh codespace ssh -c %s echo 'Codespace ready.'" (codespaces-space-name cs))))
+
+(defun codespaces--send-activate-sync (cs)
+  "Send an `echo' command to CS over ssh synchronously."
+  (shell-command (format "gh codespace ssh -c %s echo 'Codespace ready.'" (codespaces-space-name cs)) (get-buffer shell-command-buffer-name)))
 
 (defun codespaces--fold (acc val)
   "Internal: fold function for accumulating JSON results into ACC from VAL."
@@ -128,7 +132,7 @@
   (interactive)
   (letrec ((json (codespaces--get-unavailable-codespaces))
            (selected (gethash (codespaces--complete json) json)))
-    (codespaces--send-whoami selected)))
+    (codespaces--send-activate-async selected)))
 
 (defun codespaces-connect ()
   "Connect to a codespace chosen by `completing-read'."
@@ -136,7 +140,8 @@
   (letrec ((json (codespaces--get-codespaces))
            (selected (gethash (codespaces--complete json) json)))
     (unless (codespaces-space-available-p selected)
-      (message "Activating codespace (this may take some time)..."))
+      (message "Activating codespace (this may take some time)...")
+      (codespaces--send-activate-sync selected))
     (find-file (format "/ghcs:%s:/workspaces" (codespaces-space-name selected)))))
 
 (provide 'codespaces)

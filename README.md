@@ -32,9 +32,9 @@ automatically:
 - `codespaces-connect` brings up a list of codespaces, and upon
     selection opens a Dired buffer in `/workspaces` (the default
     Codespaces location).
-- `codespaces-start` brings up a list of inactive codespaces,
-    and upon selection asynchronously spawns a task that activates
-    the selected codespace.
+- `codespaces-start`/`codespaces-stop` bring up a list of applicable
+    codespaces and upon selection spawns a task that
+    starts or stops the selected codespace.
 
 # Missing features
 

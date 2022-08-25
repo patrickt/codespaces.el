@@ -1,4 +1,4 @@
-;;; codespaces.el --- Connect to GitHub Codespaces via TRAMP  -*- lexical-binding: t; -*-
+;;; codespaces.el --- Connect to GitHub Codespaces via TRAMP  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Patrick Thomson and Bas Alberts
 
@@ -55,10 +55,12 @@
 
 ;;; codespace struct
 
-(cl-defstruct codespaces-space name display-name state repository ref)
+(cl-defstruct codespaces-space "Codespace information as fetched from GitHub."
+              name display-name state repository ref)
 
 (defun codespaces-space-from-hashtable (ht)
   "Create a codespace from the JSON hashtable HT returned from `gh'."
+  (cl-check-type ht hash-table)
   (make-codespaces-space
    :name (gethash "name" ht)
    :display-name (gethash "displayName" ht)
@@ -68,11 +70,13 @@
 
 (defun codespaces-space-readable-name (cs)
   "Return the display name of CS, or, if that is empty, its machine name."
+  (cl-check-type cs codespaces-space)
   (let ((name (codespaces-space-display-name cs)))
     (if (string-empty-p name) (codespaces-space-name cs) name)))
 
 (defun codespaces-space-describe (cs)
   "Format details about codespace CS for display as marginalia."
+  (cl-check-type cs codespaces-space)
   (format " | %s | %s | %s"
           (codespaces-space-state cs)
           (codespaces-space-repository cs)
@@ -80,16 +84,16 @@
 
 (defun codespaces-space-available-p (cs)
   "Return t if codespace CS is marked as available."
+  (cl-check-type cs codespaces-space)
   (equal "Available" (codespaces-space-state cs)))
 
 ;;; Internal methods
 
 (defun codespaces--get-codespaces ()
   "Execute `gh' and parse its results."
-  (letrec
-      ((gh-invocation "gh codespace list --json name,displayName,repository,state,gitStatus,lastUsedAt")
-       (codespace-json (shell-command-to-string gh-invocation)))
-    (codespaces--munge (json-parse-string codespace-json))))
+  (let
+      ((gh-invocation "gh codespace list --json name,displayName,repository,state,gitStatus,lastUsedAt"))
+    (codespaces--build-table (json-parse-string (shell-command-to-string gh-invocation)))))
 
 (defun codespaces--get-available-codespaces ()
   "Internal: find all available codespaces."
@@ -129,7 +133,7 @@
     (puthash (codespaces-space-readable-name cs) cs acc)
     acc))
 
-(defun codespaces--munge (json)
+(defun codespaces--build-table (json)
   "Internal: accumulate codespace instances from JSON vector."
   (seq-reduce #'codespaces--fold json (make-hash-table :test 'equal)))
 
@@ -168,5 +172,9 @@
     (find-file (format "/ghcs:%s:/workspaces" (codespaces-space-name selected)))))
 
 (provide 'codespaces)
+
+;; Local Variables:
+;; eval: (when (featurep 'nameless) (nameless-mode))
+;; End:
 
 ;;; codespaces.el ends here

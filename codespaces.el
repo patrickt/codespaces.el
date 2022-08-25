@@ -55,18 +55,19 @@
 
 ;;; codespace struct
 
-(cl-defstruct codespaces-space "Codespace information as fetched from GitHub."
+(cl-defstruct (codespaces-space (:constructor codespaces--make-space)) "Codespace information as fetched from GitHub."
               name display-name state repository ref)
 
 (defun codespaces-space-from-hashtable (ht)
   "Create a codespace from the JSON hashtable HT returned from `gh'."
   (cl-check-type ht hash-table)
-  (make-codespaces-space
-   :name (gethash "name" ht)
-   :display-name (gethash "displayName" ht)
-   :state (gethash "state" ht)
-   :repository (gethash "repository" ht)
-   :ref (gethash "ref" (gethash "gitStatus" ht))))
+  (cl-flet ((get (n) (gethash n ht)))
+    (codespaces--make-space
+     :name (get "name")
+     :display-name (get "displayName")
+     :state (get "state")
+     :repository (get "repository")
+     :ref (gethash "ref" (get "gitStatus")))))
 
 (defun codespaces-space-readable-name (cs)
   "Return the display name of CS, or, if that is empty, its machine name."
@@ -97,7 +98,7 @@
 
 (defun codespaces--get-available-codespaces ()
   "Internal: find all available codespaces."
-  (letrec ((newtable (make-hash-table :test 'equal))
+  (let* ((newtable (make-hash-table :test 'equal))
            ;; This is a terrible implementation but until I switch to using plists it's the best I can do
            (construct (lambda (_ v)
                         (when (codespaces-space-available-p v)
@@ -107,7 +108,7 @@
 
 (defun codespaces--get-unavailable-codespaces ()
   "Internal: find all unavailable codespaces."
-  (letrec ((newtable (make-hash-table :test 'equal))
+  (let* ((newtable (make-hash-table :test 'equal))
            ;; This is a terrible implementation but until I switch to using plists it's the best I can do
            (construct (lambda (_ v)
                         (unless (codespaces-space-available-p v)
@@ -144,8 +145,7 @@
 
 (defun codespaces--complete (ht)
   "Invoke `completing-read' over JSON hashtable HT, returning a codespace."
-  (let
-      ((completion-extra-properties '(:annotation-function codespaces--annotate)))
+  (let ((completion-extra-properties '(:annotation-function codespaces--annotate)))
     (gethash (completing-read "Select a codespace: " ht nil t) ht)))
 
 ;;; Public interface

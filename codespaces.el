@@ -55,14 +55,15 @@
 
 ;;; codespace struct
 
-(cl-defstruct (codespaces-space (:constructor codespaces--make-space)) "Codespace information as fetched from GitHub."
-              name display-name state repository ref)
+(cl-defstruct (codespaces-space (:constructor codespaces-make-space) (:copier nil))
+  "Codespace information as fetched from GitHub."
+  name display-name state repository ref)
 
 (defun codespaces-space-from-hashtable (ht)
   "Create a codespace from the JSON hashtable HT returned from `gh'."
   (cl-check-type ht hash-table)
   (cl-flet ((get (n) (gethash n ht)))
-    (codespaces--make-space
+    (codespaces-make-space
      :name (get "name")
      :display-name (get "displayName")
      :state (get "state")

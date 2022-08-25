@@ -119,7 +119,7 @@
   "Send an `echo' command to CS over ssh synchronously."
   (shell-command (format "gh codespace ssh -c %s echo 'Codespace ready.'" (codespaces-space-name cs)) (get-buffer shell-command-buffer-name)))
 
-(defun codespaces--send-stop-async (cs)
+(defun codespaces--send-stop-sync (cs)
   "Tell codespaces CS to stop."
   (shell-command (format "gh codespace stop -c %s" (codespaces-space-name cs))))
 
@@ -139,36 +139,29 @@
     (codespaces-space-describe item)))
 
 (defun codespaces--complete (ht)
-  "Invoke `completing-read' over JSON hashtable HT."
+  "Invoke `completing-read' over JSON hashtable HT, returning a codespace."
   (let
-      ((completion-extra-properties '(:annotation-function codespaces--annotate))
-       (valid-names ht))
-    (completing-read "Select a codespace: " valid-names nil t)))
+      ((completion-extra-properties '(:annotation-function codespaces--annotate)))
+    (gethash (completing-read "Select a codespace: " ht nil t) ht)))
 
 ;;; Public interface
 
 (defun codespaces-stop ()
   "Stop a codespace chosen by `completing-read'."
   (interactive)
-  (letrec ((json (codespaces--get-available-codespaces))
-           (selected (gethash (codespaces--complete json) json)))
-    (codespaces--send-stop-async selected)))
+  (let ((selected (codespaces--complete (codespaces--get-available-codespaces))))
+    (codespaces--send-stop-sync selected)))
 
 (defun codespaces-start ()
   "Start a codespace chosen by `completing-read'."
   (interactive)
-  (letrec ((json (codespaces--get-unavailable-codespaces))
-           (selected (gethash (codespaces--complete json) json)))
+  (let ((selected (codespaces--complete (codespaces--get-unavailable-codespaces))))
     (codespaces--send-start-async selected)))
-
-(defalias 'codespaces-activate #'codespaces-start)
-(make-obsolete 'codespaces-activate 'codespaces-start nil)
 
 (defun codespaces-connect ()
   "Connect to a codespace chosen by `completing-read'."
   (interactive)
-  (letrec ((json (codespaces--get-codespaces))
-           (selected (gethash (codespaces--complete json) json)))
+  (let ((selected (codespaces--complete (codespaces--get-codespaces))))
     (unless (codespaces-space-available-p selected)
       (message "Activating codespace (this may take some time)...")
       (codespaces--send-start-sync selected))

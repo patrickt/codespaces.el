@@ -41,7 +41,7 @@
   (interactive)
   (unless (executable-find "gh")
     (user-error "Could not find `gh' program in your PATH"))
-  (unless (and (fboundp 'json-available-p) (json-available-p))
+  (unless (featurep 'json)
     (user-error "Emacs JSON support not available; your Emacs is too old"))
   (let ((ghcs (assoc "ghcs" tramp-methods))
         (ghcs-methods '((tramp-login-program "gh")
@@ -57,7 +57,11 @@
 
 (cl-defstruct (codespaces-space (:constructor codespaces-make-space) (:copier nil))
   "Codespace information as fetched from GitHub."
-  name display-name state repository ref)
+  (name nil :type string)
+  (display-name nil :type string)
+  (state 'unknown :type symbol)
+  (repository nil :type string)
+  (ref nil :type string))
 
 (defun codespaces-space-from-hashtable (ht)
   "Create a codespace from the JSON hashtable HT returned from `gh'."
@@ -66,7 +70,7 @@
     (codespaces-make-space
      :name (get "name")
      :display-name (get "displayName")
-     :state (get "state")
+     :state (intern (downcase (get "state")))
      :repository (get "repository")
      :ref (gethash "ref" (get "gitStatus")))))
 
@@ -87,34 +91,28 @@
 (defun codespaces-space-available-p (cs)
   "Return t if codespace CS is marked as available."
   (cl-check-type cs codespaces-space)
-  (equal "Available" (codespaces-space-state cs)))
+  (eq 'available (codespaces-space-state cs)))
+
+(defun codespaces-space-shutdown-p (cs)
+  "Return t if codespace CS is marked as shutdown."
+  (cl-check-type cs codespaces-space)
+  (eq 'shutdown (codespaces-space-state cs)))
 
 ;;; Internal methods
 
-(defun codespaces--get-codespaces ()
-  "Execute `gh' and parse its results."
-  (let
-      ((gh-invocation "gh codespace list --json name,displayName,repository,state,gitStatus,lastUsedAt"))
+(defun codespaces--all-codespaces ()
+  "Fetch all user codespaces by executing `gh'."
+  (let ((gh-invocation "gh codespace list --json name,displayName,repository,state,gitStatus,lastUsedAt"))
     (codespaces--build-table (json-parse-string (shell-command-to-string gh-invocation)))))
 
-(defun codespaces--get-available-codespaces ()
-  "Internal: find all available codespaces."
+(defun codespaces--filter-codespaces (pred)
+  "Fetch all available codespaces, filtering by PRED."
   (let ((newtable (make-hash-table :test 'equal)))
     (cl-flet ((construct (_ v)
-                (when (codespaces-space-available-p v)
+                (when (funcall pred v)
                   (puthash (codespaces-space-readable-name v) v newtable))))
-      (maphash #'construct (codespaces--get-codespaces)))
+      (maphash #'construct (codespaces--all-codespaces)))
     newtable))
-
-(defun codespaces--get-unavailable-codespaces ()
-  "Internal: find all available codespaces."
-  (let ((newtable (make-hash-table :test 'equal)))
-    (cl-flet ((construct (_ v)
-                (unless (codespaces-space-available-p v)
-                  (puthash (codespaces-space-readable-name v) v newtable))))
-      (maphash #'construct (codespaces--get-codespaces)))
-    newtable))
-
 
 (defun codespaces--send-start-async (cs)
   "Send an `echo' command to CS over ssh."
@@ -153,19 +151,21 @@
 (defun codespaces-stop ()
   "Stop a codespace chosen by `completing-read'."
   (interactive)
-  (let ((selected (codespaces--complete (codespaces--get-available-codespaces))))
-    (codespaces--send-stop-sync selected)))
+  (codespaces--send-stop-sync
+   (codespaces--complete
+    (codespaces--filter-codespaces #'codespaces-space-available-p))))
 
 (defun codespaces-start ()
   "Start a codespace chosen by `completing-read'."
   (interactive)
-  (let ((selected (codespaces--complete (codespaces--get-unavailable-codespaces))))
-    (codespaces--send-start-async selected)))
+  (codespaces--send-start-async
+   (codespaces--complete
+    (codespaces--filter-codespaces #'codespaces-space-shutdown-p))))
 
 (defun codespaces-connect ()
   "Connect to a codespace chosen by `completing-read'."
   (interactive)
-  (let ((selected (codespaces--complete (codespaces--get-codespaces))))
+  (let ((selected (codespaces--complete (codespaces--all-codespaces))))
     (unless (codespaces-space-available-p selected)
       (message "Activating codespace (this may take some time)...")
       (codespaces--send-start-sync selected))

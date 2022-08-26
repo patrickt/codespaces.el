@@ -39,12 +39,8 @@ automatically:
 # Missing features
 
 - Should ensure that `gh codespace list` works okay.
-- Should warn when trying to connect to a non-started codespace, and if
-  so then start the codespace out-of-band before entering TRAMP, as
-  otherwise we hit timeouts.
 - Completion should sort codespaces by most-recently-used.
-- There should be `dtache` support to activate codespaces without
-  freezing the Emacs UI.
+- Should have an unobtrusive `special-mode` buffer for outputs.
 
 # Credits
 

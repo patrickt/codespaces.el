@@ -32,19 +32,15 @@ automatically:
 - `codespaces-connect` brings up a list of codespaces, and upon
     selection opens a Dired buffer in `/workspaces` (the default
     Codespaces location).
-- `codespaces-start` brings up a list of inactive codespaces,
-    and upon selection asynchronously spawns a task that activates
-    the selected codespace.
+- `codespaces-start`/`codespaces-stop` bring up a list of applicable
+    codespaces and upon selection spawns a task that
+    starts or stops the selected codespace.
 
 # Missing features
 
 - Should ensure that `gh codespace list` works okay.
-- Should warn when trying to connect to a non-started codespace, and if
-  so then start the codespace out-of-band before entering TRAMP, as
-  otherwise we hit timeouts.
 - Completion should sort codespaces by most-recently-used.
-- There should be `dtache` support to activate codespaces without
-  freezing the Emacs UI.
+- Should have an unobtrusive `special-mode` buffer for outputs.
 
 # Credits
 

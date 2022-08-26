@@ -107,12 +107,10 @@
 
 (defun codespaces--filter-codespaces (pred)
   "Fetch all available codespaces, filtering by PRED."
-  (let ((newtable (make-hash-table :test 'equal)))
-    (cl-flet ((construct (_ v)
-                (when (funcall pred v)
-                  (puthash (codespaces-space-readable-name v) v newtable))))
-      (maphash #'construct (codespaces--all-codespaces)))
-    newtable))
+  (cl-loop with newtable = (make-hash-table :test 'equal)
+           for v being the hash-values of (codespaces--all-codespaces)
+           if (funcall pred v) do (puthash (codespaces-space-readable-name v) v newtable)
+           finally return newtable))
 
 (defun codespaces--send-start-async (cs)
   "Send an `echo' command to CS over ssh."

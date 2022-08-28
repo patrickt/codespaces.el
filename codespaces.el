@@ -107,10 +107,11 @@
 
 (defun codespaces--filter-codespaces (pred)
   "Fetch all available codespaces, filtering by PRED."
-  (cl-loop with newtable = (make-hash-table :test 'equal)
+  (cl-loop with result = (make-hash-table :test 'equal)
            for v being the hash-values of (codespaces--all-codespaces)
-           if (funcall pred v) do (puthash (codespaces-space-readable-name v) v newtable)
-           finally return newtable))
+           when (funcall pred v)
+           do (puthash (codespaces-space-readable-name v) v result)
+           finally return result))
 
 (defun codespaces--send-start-async (cs)
   "Send an `echo' command to CS over ssh."
@@ -124,15 +125,13 @@
   "Tell codespaces CS to stop."
   (shell-command (format "gh codespace stop -c %s" (codespaces-space-name cs))))
 
-(defun codespaces--fold (acc val)
-  "Internal: fold function for accumulating JSON results into ACC from VAL."
-  (let ((cs (codespaces-space-from-hashtable val)))
-    (puthash (codespaces-space-readable-name cs) cs acc)
-    acc))
-
 (defun codespaces--build-table (json)
-  "Internal: accumulate codespace instances from JSON vector."
-  (seq-reduce #'codespaces--fold json (make-hash-table :test 'equal)))
+  "Accumulate a JSON vector into a hashtable from names to codespaces."
+  (cl-loop with result = (make-hash-table :test 'equal)
+           for item across json
+           for cs = (codespaces-space-from-hashtable item)
+           do (puthash (codespaces-space-readable-name cs) cs result)
+           finally return result))
 
 (defun codespaces--annotate (s)
   "Annotation function for S invoked by `completing-read'."

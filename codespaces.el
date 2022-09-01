@@ -170,8 +170,4 @@
 
 (provide 'codespaces)
 
-;; Local Variables:
-;; eval: (when (featurep 'nameless) (nameless-mode))
-;; End:
-
 ;;; codespaces.el ends here

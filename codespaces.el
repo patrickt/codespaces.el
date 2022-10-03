@@ -51,7 +51,8 @@
                         (tramp-remote-shell-args ("-c")))))
     ;; just for debugging the methods
     (if ghcs (setcdr ghcs ghcs-methods)
-      (push (cons "ghcs" ghcs-methods) tramp-methods))))
+      (push (cons "ghcs" ghcs-methods) tramp-methods)))
+  (tramp-set-completion-function "ghcs" '((codespaces-tramp-completion ""))))
 
 ;;; codespace struct
 
@@ -142,6 +143,11 @@
   "Invoke `completing-read' over JSON hashtable HT, returning a codespace."
   (let ((completion-extra-properties '(:annotation-function codespaces--annotate)))
     (gethash (completing-read "Select a codespace: " ht nil t) ht)))
+
+(defun codespaces-tramp-completion (_filename)
+  "Provide a set of completion candidates to TRAMP connections."
+  (cl-loop for v being the hash-values of (codespaces--all-codespaces)
+         collect (list nil (codespaces-space-name v))))
 
 ;;; Public interface
 

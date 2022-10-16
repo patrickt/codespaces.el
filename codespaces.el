@@ -37,15 +37,17 @@
 (require 'tramp)
 
 (defgroup codespaces nil
-  "Codespaces configuration"
+  "Codespaces configuration."
+  :group 'tramp
   :prefix "codespaces-")
 
 (defcustom codespaces-default-directory nil
   "The default directory for a codespace.
 
-This will be resolved relative to the connection root. By default, this will
-use the default directory for the codespace (the same as if you ran `gh cs ssh`)
-but if you provide a path, relative or absolute, that will be substituted instead.
+This will be resolved relative to the connection root.  By default, this will
+use the default directory for the codespace (the same as if you ran
+`gh cs ssh`) but if you provide a path, relative or absolute, that will be
+substituted instead.
 
 When this is nil, the default of '/workspaces/<repo-name>' is used."
   :group 'codespaces

@@ -99,7 +99,7 @@ When this is nil, the default of '/workspaces/<repo-name>' is used."
     (if (string-empty-p name) (codespaces-space-name cs) name)))
 
 (defun codespaces-space-repository-name (cs)
-  "Return the repository part of the codespace repo, or if empty, its name."
+  "Return the repository part of the CS codespace repo, or if empty, its name."
   (cl-check-type cs codespaces-space)
   (car (cdr (split-string (codespaces-space-repository cs) "/"))))
 

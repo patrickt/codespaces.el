@@ -36,6 +36,23 @@
 
 (require 'tramp)
 
+(defgroup codespaces nil
+  "Codespaces configuration."
+  :group 'tramp
+  :prefix "codespaces-")
+
+(defcustom codespaces-default-directory nil
+  "The default directory for a codespace.
+
+This will be resolved relative to the connection root.  By default, this will
+use the default directory for the codespace (the same as if you ran
+`gh cs ssh`) but if you provide a path, relative or absolute, that will be
+substituted instead.
+
+When this is nil, the default of '/workspaces/<repo-name>' is used."
+  :group 'codespaces
+  :type 'string)
+
 (defun codespaces-setup ()
   "Set up the ghcs tramp-method.  Should be called after requiring this package."
   (interactive)
@@ -80,6 +97,11 @@
   (cl-check-type cs codespaces-space)
   (let ((name (codespaces-space-display-name cs)))
     (if (string-empty-p name) (codespaces-space-name cs) name)))
+
+(defun codespaces-space-repository-name (cs)
+  "Return the repository part of the CS codespace repo, or if empty, its name."
+  (cl-check-type cs codespaces-space)
+  (car (cdr (split-string (codespaces-space-repository cs) "/"))))
 
 (defun codespaces-space-describe (cs)
   "Format details about codespace CS for display as marginalia."
@@ -172,7 +194,10 @@
     (unless (codespaces-space-available-p selected)
       (message "Activating codespace (this may take some time)...")
       (codespaces--send-start-sync selected))
-    (find-file (format "/ghcs:%s:/workspaces" (codespaces-space-name selected)))))
+    (find-file (format "/ghcs:%s:%s"
+                       (codespaces-space-name selected)
+                       (or codespaces-default-directory
+                           (format "/workspaces/%s" (codespaces-space-repository-name selected)))))))
 
 (provide 'codespaces)
 

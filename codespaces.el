@@ -101,10 +101,16 @@
 
 ;;; Internal methods
 
+(defmacro codespaces--locally (&rest body)
+  "Ensure BODY is run with a local `default-directory'."
+  `(let ((default-directory (if (file-remote-p default-directory) "/" default-directory)))
+     ,@body))
+
 (defun codespaces--all-codespaces ()
   "Fetch all user codespaces by executing `gh'."
   (let ((gh-invocation "gh codespace list --json name,displayName,repository,state,gitStatus,lastUsedAt"))
-    (codespaces--build-table (json-parse-string (shell-command-to-string gh-invocation)))))
+    (codespaces--locally
+     (codespaces--build-table (json-parse-string (shell-command-to-string gh-invocation))))))
 
 (defun codespaces--filter-codespaces (pred)
   "Fetch all available codespaces, filtering by PRED."
@@ -116,15 +122,18 @@
 
 (defun codespaces--send-start-async (cs)
   "Send an `echo' command to CS over ssh."
-  (async-shell-command (format "gh codespace ssh -c %s echo 'Codespace ready.'" (codespaces-space-name cs))))
+  (codespaces--locally
+   (async-shell-command (format "gh codespace ssh -c %s echo 'Codespace ready.'" (codespaces-space-name cs)))))
 
 (defun codespaces--send-start-sync (cs)
   "Send an `echo' command to CS over ssh synchronously."
-  (shell-command (format "gh codespace ssh -c %s echo 'Codespace ready.'" (codespaces-space-name cs)) (get-buffer shell-command-buffer-name)))
+  (codespaces--locally
+   (shell-command
+    (format "gh codespace ssh -c %s echo 'Codespace ready.'" (codespaces-space-name cs)) (get-buffer shell-command-buffer-name))))
 
 (defun codespaces--send-stop-sync (cs)
   "Tell codespaces CS to stop."
-  (shell-command (format "gh codespace stop -c %s" (codespaces-space-name cs))))
+  (codespaces--locally (shell-command (format "gh codespace stop -c %s" (codespaces-space-name cs)))))
 
 (defun codespaces--build-table (json)
   "Accumulate a JSON vector into a hashtable from names to codespaces."
@@ -147,7 +156,7 @@
 (defun codespaces-tramp-completion (_filename)
   "Provide a set of completion candidates to TRAMP connections."
   (cl-loop for v being the hash-values of (codespaces--all-codespaces)
-         collect (list nil (codespaces-space-name v))))
+           collect (list nil (codespaces-space-name v))))
 
 ;;; Public interface
 

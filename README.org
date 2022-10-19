@@ -25,6 +25,12 @@ You will need to have the GitHub [[https://cli.github.com][command line tools]] 
   :config (codespaces-setup))
 #+end_src
 
+I /strongly/ recommend you customize ~vc-handled-backends~ and remove the ones that you don't use. I suffered considerable lag to Codespace instances before I did so.
+
+#+begin_src emacs-lisp
+  (setq vc-handled-backends '(Git))
+#+end_src
+
 * User-facing commands
 - =codespaces-connect= brings up a list of codespaces, and upon selection opens a Dired buffer in =/workspaces= (the default Codespaces location).
 - =codespaces-start= brings up a list of inactive codespaces and upon selection spawns a task that starts the selected codespace.

@@ -16,14 +16,21 @@ Here is an example =use-package= declaration:
   :bind ("C-c S" . #'codespaces-connect))
 #+end_src
 
-You will need to have the GitHub [[https://cli.github.com][command line tools]] (=gh=) installed. If you use =use-package-ensure-system-package=, Emacs can install them for you automatically:
+You will need to:
 
-#+begin_src emacs-lisp
-(use-package use-package-ensure-system-package :ensure t)
-(use-package codespaces
-  :ensure-system-package gh
-  :config (codespaces-setup))
-#+end_src
+1. Have the GitHub [[https://cli.github.com][command line tools]] (=gh=) installed.
+  * If you use =use-package-ensure-system-package=, Emacs can install this for you automatically:
+
+  #+begin_src emacs-lisp
+    (use-package use-package-ensure-system-package :ensure t)
+    (use-package codespaces
+      :ensure-system-package gh
+      :config (codespaces-setup))
+  #+end_src
+
+2. Authorize =gh= to access your codespaces:
+  * Running =gh codespace list= will verify if permissions are correctly set.
+  * You can grant the required permission by running =gh auth refresh -h github.com -s codespace=.
 
 I /strongly/ recommend you customize ~vc-handled-backends~ and remove the ones that you don't use. I suffered considerable lag to Codespace instances before I did so.
 

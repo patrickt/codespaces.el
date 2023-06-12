@@ -42,10 +42,32 @@ Because the TRAMP package, which underpins this package's functionality, connect
   }
 #+end_src
 
+* Other recommended configs
+
 I /strongly/ recommend you customize ~vc-handled-backends~ and remove the ones that you don't use. I suffered considerable lag to Codespace instances before I did so.
 
 #+begin_src emacs-lisp
   (setq vc-handled-backends '(Git))
+#+end_src
+
+Use the host's PATH as TRAMP's [remote path](https://www.gnu.org/software/emacs/manual/html_node/tramp/Remote-programs.html):
+
+#+begin_src emacs-lisp
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+#+end_src
+
+Use SSH connection sharing to reduce the number of new SSH connections that TRAMP needs to spawn for refreshing buffers. In your `~/.ssh/config` file, add the lines:
+
+#+begin_src
+  	ControlMaster auto
+	  ControlPath ~/.ssh/sockets/%r@%h-%p
+	  ControlPersist 600
+#+end_src
+
+And to disable TRAMP's default ControlMaster settings in your Emacs config, add:
+
+#+begin_src
+(setq tramp-ssh-controlmaster-options "")
 #+end_src
 
 * User-facing commands

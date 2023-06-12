@@ -30,9 +30,9 @@ Because the TRAMP package, which underpins this package's functionality, connect
 #+begin_src javascript
   "features": {
     "ghcr.io/devcontainers/features/sshd:1": {
-        "version": "latest"
+      "version": "latest"
     }
-}
+  }
 #+end_src
 
 I /strongly/ recommend you customize ~vc-handled-backends~ and remove the ones that you don't use. I suffered considerable lag to Codespace instances before I did so.

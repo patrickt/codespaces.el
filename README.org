@@ -25,6 +25,16 @@ You will need to have the GitHub [[https://cli.github.com][command line tools]] 
   :config (codespaces-setup))
 #+end_src
 
+Because the TRAMP package, which underpins this package's functionality, connects to remote servers over SSH, your codespace needs to have an SSH server running on it. If the Docker image that your codespace uses doesn't have an SSH server, install ~sshd~ in your Dockerfile; for codespaces that use Debian-based images, you can add the following to ~.devcontainer/devcontainer.json~:
+
+#+begin_src javascript
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {
+        "version": "latest"
+    }
+}
+#+end_src
+
 I /strongly/ recommend you customize ~vc-handled-backends~ and remove the ones that you don't use. I suffered considerable lag to Codespace instances before I did so.
 
 #+begin_src emacs-lisp

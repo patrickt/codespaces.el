@@ -60,7 +60,7 @@ Use SSH connection sharing to reduce the number of new SSH connections that TRAM
 
 #+begin_src
   ControlMaster auto
-  ControlPath ~/.ssh/sockets/%r@%h
+  ControlPath ~/.ssh/sockets/%C
   ControlPersist 10m
 #+end_src
 

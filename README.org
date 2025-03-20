@@ -4,6 +4,10 @@
 [[https://melpa.org/#/codespaces][file:https://melpa.org/packages/codespaces-badge.svg]]
 [[https://raw.githubusercontent.com/patrickt/codespaces.el/main/LICENSE][file:https://img.shields.io/github/license/patrickt/codespaces.el.svg]]
 
+** Notice
+
+I have no plans to continue maintaining this package. If you are interested in taking over maintainership, please leave a comment in an issue and I will transfer ownership of this repo to you.
+
 This package provides support for connecting to [[https://github.com/features/codespaces][GitHub Codespaces]] in Emacs via [[https://www.gnu.org/software/tramp/][TRAMP]]. It provides a handy =completing-read= UI that lets you choose from all your created codespaces. Here's a screenshot (running with [[https://github.com/minad/vertico][vertico]]):
 
 [[./screenshot.png]]
